@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<title>L'écosystème IA Wealth — Figen AI Academy</title>
+<script src="https://cdn.jsdelivr.net/npm/three@0.160/build/three.min.js"></script>
+<script src="https://d3js.org/d3.v7.min.js"></script>
+<style>
+  :root { --bg:#0a1628; --surface:#122336; --accent:#ffd34a; --text:#f5f7fa; --muted:#94a3b8; --line:#2a3349; }
+  html,body { margin:0; padding:0; background:var(--bg); color:var(--text); font-family:"Public Sans",system-ui,sans-serif; overflow:hidden; height:100vh; }
+  #scene { position:fixed; inset:0; }
+  .hud { position:fixed; top:20px; left:24px; right:24px; pointer-events:none; z-index:10; display:flex; justify-content:space-between; align-items:flex-start; }
+  .hud .left { pointer-events:auto; max-width:480px; }
+  .hud .right { pointer-events:auto; max-width:300px; text-align:right; }
+  .logo { font-size:11px; color:var(--accent); letter-spacing:0.22em; text-transform:uppercase; font-weight:700; }
+  h1 { margin:6px 0 0 0; font-size:26px; font-weight:800; letter-spacing:-0.02em; line-height:1.1; }
+  h1 span { color:var(--accent); }
+  .sub { color:var(--muted); font-size:13px; margin-top:8px; line-height:1.45; }
+  .legend { background:rgba(18,35,54,.85); border:1px solid var(--line); border-radius:8px; padding:12px 14px; backdrop-filter:blur(8px); font-size:11px; }
+  .legend .row { display:flex; align-items:center; gap:8px; margin:5px 0; }
+  .legend .dot { width:10px; height:10px; border-radius:50%; }
+
+  .detail { position:fixed; bottom:24px; left:24px; right:24px; pointer-events:none; z-index:10; display:flex; justify-content:center; }
+  .panel { pointer-events:auto; background:rgba(18,35,54,.92); border:1px solid var(--accent); border-radius:10px; padding:16px 24px; backdrop-filter:blur(10px); max-width:720px; opacity:0; transform:translateY(20px); transition:all .3s; }
+  .panel.show { opacity:1; transform:translateY(0); }
+  .panel .pname { color:var(--accent); font-weight:700; font-size:18px; }
+  .panel .pcat { color:var(--muted); font-size:11px; text-transform:uppercase; letter-spacing:0.15em; margin-top:2px; }
+  .panel .pdesc { font-size:13px; margin-top:10px; line-height:1.55; color:#e0e7ef; }
+  .panel .pstats { display:flex; gap:24px; margin-top:12px; font-size:12px; }
+  .panel .pstats .k { color:var(--muted); }
+  .panel .pstats .v { color:var(--accent); font-weight:700; margin-left:4px; }
+
+  .crumb { position:fixed; bottom:24px; right:24px; z-index:10; color:var(--muted); font-size:11px; max-width:300px; text-align:right; line-height:1.4; }
+  .crumb code { color:var(--accent); background:rgba(255,211,74,.08); padding:1px 6px; border-radius:3px; }
+</style>
+</head>
+<body>
+<canvas id="scene"></canvas>
+
+<div class="hud">
+  <div class="left">
+    <div class="logo">Figen AI Academy</div>
+    <h1>L'écosystème <span>IA Wealth</span> en 3D</h1>
+    <div class="sub">15 nœuds représentent les acteurs et concepts de l'IA appliquée à la gestion patrimoniale. Cliquez sur une sphère pour explorer ; faites glisser pour orbiter.</div>
+  </div>
+  <div class="right">
+    <div class="legend">
+      <div class="row"><div class="dot" style="background:#ffd34a"></div>Catégorie : Outils</div>
+      <div class="row"><div class="dot" style="background:#86efac"></div>Catégorie : CGP</div>
+      <div class="row"><div class="dot" style="background:#7dd3fc"></div>Catégorie : Régulation</div>
+      <div class="row"><div class="dot" style="background:#fda4af"></div>Catégorie : Marchés</div>
+      <div class="row"><div class="dot" style="background:#c4b5fd"></div>Catégorie : Concepts IA</div>
+    </div>
+  </div>
+</div>
+
+<div class="detail"><div class="panel" id="panel">
+  <div class="pname" id="pname">—</div>
+  <div class="pcat" id="pcat">—</div>
+  <div class="pdesc" id="pdesc">—</div>
+  <div class="pstats">
+    <div><span class="k">Adoption :</span><span class="v" id="pa">—</span></div>
+    <div><span class="k">Risque :</span><span class="v" id="pr">—</span></div>
+    <div><span class="k">ROI :</span><span class="v" id="proi">—</span></div>
+  </div>
+</div></div>
+
+<div class="crumb">Rendu Three.js + D3.js · embed direct dans LearnWorlds via <code>type: embed</code> · 100% client-side</div>
+
+<script>
+const nodes = [
+  { id:"figen", label:"Figen AI", cat:"tools", color:0xffd34a, size:1.4, desc:"Agent IA conversationnel pour CGP — synthèse client, MIF, briefing produit en temps réel.", a:"Pilote", r:"Maîtrisé", roi:"x3-5" },
+  { id:"llm", label:"LLMs", cat:"ai", color:0xc4b5fd, size:1.1, desc:"Modèles de langage (Claude, GPT, Gemini, Mistral). Base de toute interaction agentique.", a:"Mainstream", r:"Modéré", roi:"x10" },
+  { id:"rag", label:"RAG", cat:"ai", color:0xc4b5fd, size:1.0, desc:"Retrieval-Augmented Generation. Indispensable pour contextualiser sur la doc client + réglementation.", a:"Maturité", r:"Faible", roi:"x4" },
+  { id:"agent", label:"Agents", cat:"ai", color:0xc4b5fd, size:1.1, desc:"Orchestration multi-step avec outils. Le pattern qui rend Figen véritablement productif.", a:"Émergent", r:"Modéré", roi:"x5" },
+  { id:"cgp", label:"CGP indé", cat:"cgp", color:0x86efac, size:1.25, desc:"34 000 cabinets en France. Le cœur de cible Figen.", a:"Stable", r:"—", roi:"—" },
+  { id:"banque", label:"Banques privées", cat:"cgp", color:0x86efac, size:1.1, desc:"Modèles internes, peu d'open API. Adoption IA via vendor enterprise.", a:"Test", r:"Lent", roi:"—" },
+  { id:"famille", label:"Family Office", cat:"cgp", color:0x86efac, size:0.9, desc:"Petits effectifs, gros tickets. Adoption rapide quand le ROI est clair.", a:"Niche", r:"—", roi:"x8" },
+  { id:"amf", label:"AMF", cat:"reg", color:0x7dd3fc, size:1.0, desc:"Régulateur français. Doctrine IA en construction — audit + traçabilité = obligatoires.", a:"Cadre", r:"—", roi:"—" },
+  { id:"mif", label:"MIF II", cat:"reg", color:0x7dd3fc, size:0.95, desc:"Test d'adéquation. L'IA accélère le pré-remplissage et la justification.", a:"Standard", r:"—", roi:"—" },
+  { id:"rgpd", label:"RGPD", cat:"reg", color:0x7dd3fc, size:0.9, desc:"Données personnelles. Hosting EU + droit à l'oubli = contraintes design pour Figen.", a:"Standard", r:"—", roi:"—" },
+  { id:"iaact", label:"IA Act", cat:"reg", color:0x7dd3fc, size:0.95, desc:"Risque modéré pour la conseil financier. Documentation + tests d'équité requis.", a:"Mise en œuvre 2026", r:"—", roi:"—" },
+  { id:"actions", label:"Actions FR", cat:"marche", color:0xfda4af, size:0.85, desc:"CAC40 + Mid-caps. Données ratios + prévisions intégrées via API Bloomberg/Refinitiv.", a:"—", r:"—", roi:"—" },
+  { id:"sci", label:"SCPI/OPCI", cat:"marche", color:0xfda4af, size:0.9, desc:"Pierre-papier. Module Figen dédié à la projection rendement net + ATD.", a:"—", r:"—", roi:"—" },
+  { id:"av", label:"Assurance-vie", cat:"marche", color:0xfda4af, size:1.0, desc:"Le produit roi en France. Comparateur UC + euro-fonds via Figen.", a:"—", r:"—", roi:"—" },
+  { id:"pp", label:"PER", cat:"marche", color:0xfda4af, size:0.85, desc:"Loi Pacte. Simulation fiscale dynamique + projection retraite multi-scénario.", a:"—", r:"—", roi:"—" },
+];
+
+const edges = [
+  ["figen","llm"],["figen","rag"],["figen","agent"],["figen","cgp"],
+  ["figen","mif"],["figen","amf"],
+  ["llm","rag"],["llm","agent"],["rag","agent"],
+  ["cgp","mif"],["cgp","actions"],["cgp","sci"],["cgp","av"],["cgp","pp"],
+  ["amf","mif"],["amf","iaact"],["amf","rgpd"],
+  ["banque","cgp"],["famille","cgp"],
+  ["mif","actions"],["mif","av"],["av","pp"]
+];
+
+const W = window.innerWidth, H = window.innerHeight;
+const scene = new THREE.Scene();
+const camera = new THREE.PerspectiveCamera(60, W/H, 0.1, 100);
+camera.position.set(0, 0, 18);
+const renderer = new THREE.WebGLRenderer({ canvas: document.getElementById("scene"), antialias:true, alpha:true });
+renderer.setSize(W, H); renderer.setPixelRatio(Math.min(window.devicePixelRatio,2));
+
+// Soft ambient + key light
+scene.add(new THREE.AmbientLight(0xffffff, 0.55));
+const key = new THREE.PointLight(0xffd34a, 1.2, 100); key.position.set(8,8,12); scene.add(key);
+const fill = new THREE.PointLight(0x7dd3fc, 0.7, 60); fill.position.set(-10,-6,6); scene.add(fill);
+
+// 3D positions via simple force-like layout (Fibonacci sphere)
+const phi = (1+Math.sqrt(5))/2;
+nodes.forEach((n,i)=>{
+  const t = i / nodes.length;
+  const inc = Math.acos(1 - 2*t);
+  const az = 2*Math.PI*i/phi;
+  const R = 7 + (n.size-1)*1.5;
+  n.pos = new THREE.Vector3(R*Math.sin(inc)*Math.cos(az), R*Math.sin(inc)*Math.sin(az), R*Math.cos(inc));
+});
+
+// Edges (lines)
+const lineMat = new THREE.LineBasicMaterial({ color:0x2a3349, transparent:true, opacity:0.45 });
+edges.forEach(([a,b])=>{
+  const na = nodes.find(x=>x.id===a), nb = nodes.find(x=>x.id===b);
+  if(!na||!nb) return;
+  const geom = new THREE.BufferGeometry().setFromPoints([na.pos, nb.pos]);
+  const line = new THREE.Line(geom, lineMat);
+  scene.add(line);
+});
+
+// Nodes (spheres + label sprites)
+const meshes = [];
+nodes.forEach(n=>{
+  const geom = new THREE.SphereGeometry(0.4*n.size, 32, 32);
+  const mat = new THREE.MeshStandardMaterial({ color:n.color, emissive:n.color, emissiveIntensity:0.25, metalness:0.3, roughness:0.4 });
+  const m = new THREE.Mesh(geom, mat);
+  m.position.copy(n.pos);
+  m.userData.node = n;
+  scene.add(m);
+  meshes.push(m);
+
+  // Label via sprite
+  const cv = document.createElement('canvas'); cv.width=512; cv.height=128;
+  const ctx = cv.getContext('2d');
+  ctx.font = 'bold 56px system-ui';
+  ctx.textAlign='center'; ctx.textBaseline='middle';
+  ctx.fillStyle='#f5f7fa';
+  ctx.fillText(n.label, 256, 64);
+  const tex = new THREE.CanvasTexture(cv);
+  const sprMat = new THREE.SpriteMaterial({ map:tex, transparent:true });
+  const spr = new THREE.Sprite(sprMat); spr.scale.set(2.2,0.55,1);
+  spr.position.copy(n.pos).add(new THREE.Vector3(0, 0.6+0.5*n.size, 0));
+  scene.add(spr);
+});
+
+// Raycaster for click
+const raycaster = new THREE.Raycaster();
+const mouse = new THREE.Vector2();
+const panel = document.getElementById('panel');
+function pick(ev) {
+  const r = renderer.domElement.getBoundingClientRect();
+  mouse.x = ((ev.clientX-r.left)/r.width)*2 - 1;
+  mouse.y = -((ev.clientY-r.top)/r.height)*2 + 1;
+  raycaster.setFromCamera(mouse, camera);
+  const hits = raycaster.intersectObjects(meshes);
+  if (hits.length) {
+    const n = hits[0].object.userData.node;
+    panel.classList.add('show');
+    document.getElementById('pname').textContent = n.label;
+    document.getElementById('pcat').textContent = n.cat;
+    document.getElementById('pdesc').textContent = n.desc;
+    document.getElementById('pa').textContent = n.a;
+    document.getElementById('pr').textContent = n.r;
+    document.getElementById('proi').textContent = n.roi;
+  }
+}
+renderer.domElement.addEventListener('click', pick);
+
+// Orbit drag
+let drag=false, lastX=0, lastY=0, yaw=0, pitch=0;
+renderer.domElement.addEventListener('mousedown', e=>{ drag=true; lastX=e.clientX; lastY=e.clientY; });
+window.addEventListener('mouseup', ()=>drag=false);
+window.addEventListener('mousemove', e=>{
+  if(!drag) return;
+  yaw += (e.clientX-lastX)*0.005;
+  pitch += (e.clientY-lastY)*0.005;
+  pitch = Math.max(-1.3, Math.min(1.3, pitch));
+  lastX=e.clientX; lastY=e.clientY;
+});
+
+let auto=true;
+renderer.domElement.addEventListener('mousedown', ()=>{ auto=false; });
+
+function tick(t) {
+  if (auto) yaw += 0.0018;
+  const r = 18;
+  camera.position.x = r*Math.sin(yaw)*Math.cos(pitch);
+  camera.position.y = r*Math.sin(pitch);
+  camera.position.z = r*Math.cos(yaw)*Math.cos(pitch);
+  camera.lookAt(0,0,0);
+  // Gentle pulse on spheres
+  meshes.forEach((m,i)=>{
+    const k = 1 + 0.06*Math.sin(t*0.001 + i*0.7);
+    m.scale.setScalar(k);
+  });
+  renderer.render(scene, camera);
+  requestAnimationFrame(tick);
+}
+requestAnimationFrame(tick);
+
+window.addEventListener('resize', ()=>{
+  const w=window.innerWidth, h=window.innerHeight;
+  camera.aspect = w/h; camera.updateProjectionMatrix();
+  renderer.setSize(w,h);
+});
+
+// Auto-click the Figen node after 1.5s to surface the demo on load
+setTimeout(()=>{
+  const n = nodes[0];
+  panel.classList.add('show');
+  document.getElementById('pname').textContent = n.label;
+  document.getElementById('pcat').textContent = n.cat;
+  document.getElementById('pdesc').textContent = n.desc;
+  document.getElementById('pa').textContent = n.a;
+  document.getElementById('pr').textContent = n.r;
+  document.getElementById('proi').textContent = n.roi;
+}, 1500);
+</script>
+</body>
+</html>
