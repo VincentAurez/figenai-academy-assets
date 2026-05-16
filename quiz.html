@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8" />
+<title>Quiz Figen AI Academy</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background: #0a1628; color: #f5f7fa; min-height: 100vh;
+    font-family: 'Public Sans', system-ui, -apple-system, sans-serif;
+    padding: 32px 24px;
+  }
+  .container { max-width: 720px; margin: 0 auto; }
+  .brand { color: #ffd34a; font-weight: 800; font-size: 16px; margin-bottom: 6px; }
+  .brand small { color: #94a3b8; font-weight: 500; font-size: 12px; margin-left: 6px; }
+  h1 { font-size: 28px; margin-bottom: 24px; line-height: 1.2; }
+  .progress {
+    height: 4px; background: #1f2d44; border-radius: 2px; margin-bottom: 28px;
+    overflow: hidden;
+  }
+  .progress .bar {
+    height: 100%; background: #ffd34a; width: 0%; transition: width 0.3s;
+  }
+  .question {
+    background: #122336; border: 1px solid #1f2d44; border-radius: 12px;
+    padding: 24px; margin-bottom: 16px;
+  }
+  .question .qnum { color: #94a3b8; font-size: 12px; font-weight: 600; margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.05em; }
+  .question .qtext { font-size: 17px; margin-bottom: 16px; line-height: 1.4; }
+  .choice {
+    background: #0a1628; border: 1px solid #2a3349; border-radius: 8px;
+    padding: 12px 16px; margin-bottom: 8px; cursor: pointer;
+    transition: all 0.15s; font-size: 14px;
+  }
+  .choice:hover { border-color: #ffd34a; }
+  .choice.selected { border-color: #ffd34a; background: rgba(255,211,74,0.1); }
+  .choice.correct { border-color: #5fe0c5; background: rgba(95,224,197,0.12); }
+  .choice.wrong { border-color: #f57878; background: rgba(245,120,120,0.12); }
+  button {
+    background: #ffd34a; color: #0a1628; border: 0; border-radius: 8px;
+    padding: 14px 32px; font-weight: 700; font-size: 15px; cursor: pointer;
+    transition: transform 0.15s;
+  }
+  button:hover { transform: translateY(-1px); }
+  button:disabled { background: #2a3349; color: #94a3b8; cursor: not-allowed; transform: none; }
+  .result {
+    background: #122336; border: 2px solid #ffd34a; border-radius: 12px;
+    padding: 32px; text-align: center; margin-top: 16px;
+  }
+  .result h2 { font-size: 32px; color: #ffd34a; margin-bottom: 8px; }
+  .result p { color: #94a3b8; font-size: 14px; line-height: 1.5; }
+  .score { font-size: 56px; font-weight: 800; color: #ffd34a; margin: 16px 0; }
+</style>
+</head>
+<body>
+<div class="container">
+  <div class="brand">Figen AI Academy <small>· Quiz Course-as-Code</small></div>
+  <h1>5 questions · IA générative pour CGP</h1>
+  <div class="progress"><div class="bar" id="bar"></div></div>
+  <div id="quiz"></div>
+  <button id="submit" disabled>Voir mon score</button>
+  <div id="result" style="display:none;"></div>
+</div>
+
+<script>
+const questions = [
+  { q: "Quel est le coût mondial estimé de l'investissement dans l'IA générative en 2025 ?", c: ["10 milliards $","44 milliards $","144 milliards $","500 milliards $"], a: 2 },
+  { q: "Quelle directive encadre le devoir de conseil patrimonial en France ?", c: ["DDA","MiFID I","Bâle III","RGPD"], a: 0 },
+  { q: "Que signifie 'RAG' dans le contexte IA ?", c: ["Random Access Generation","Retrieval-Augmented Generation","Real-time AI Grading","Recursive Agent Graph"], a: 1 },
+  { q: "Quelle technique limite les hallucinations d'un LLM en production ?", c: ["Augmenter la température","Source-grounding (RAG)","Plus de tokens","Plus de contexte"], a: 1 },
+  { q: "Quel % des Français 16-74 ans utilisaient l'IA générative en 2025 ?", c: ["12,5%","25,0%","37,5%","50,0%"], a: 2 },
+];
+
+const answers = new Array(questions.length).fill(null);
+
+function render() {
+  const qDiv = document.getElementById("quiz");
+  qDiv.innerHTML = "";
+  questions.forEach((q, i) => {
+    const card = document.createElement("div");
+    card.className = "question";
+    card.innerHTML = `<div class="qnum">Question ${i+1} / ${questions.length}</div><div class="qtext">${q.q}</div>`;
+    q.c.forEach((choice, j) => {
+      const c = document.createElement("div");
+      c.className = "choice" + (answers[i] === j ? " selected" : "");
+      c.textContent = choice;
+      c.onclick = () => { answers[i] = j; render(); update(); };
+      card.appendChild(c);
+    });
+    qDiv.appendChild(card);
+  });
+}
+
+function update() {
+  const answered = answers.filter(a => a !== null).length;
+  document.getElementById("bar").style.width = `${answered/questions.length*100}%`;
+  document.getElementById("submit").disabled = answered < questions.length;
+}
+
+document.getElementById("submit").onclick = () => {
+  let score = 0;
+  answers.forEach((a, i) => { if (a === questions[i].a) score++; });
+  // Mark choices
+  document.querySelectorAll(".question").forEach((card, i) => {
+    card.querySelectorAll(".choice").forEach((c, j) => {
+      if (j === questions[i].a) c.classList.add("correct");
+      else if (j === answers[i]) c.classList.add("wrong");
+    });
+  });
+  const verdict = score === 5 ? "Excellent — vous êtes prêt." :
+                  score >= 3 ? "Bon départ. Module 0 recommandé." :
+                  "À approfondir. Inscrivez-vous au programme.";
+  document.getElementById("result").innerHTML =
+    `<div class="result"><h2>Résultat</h2><div class="score">${score} / 5</div><p>${verdict}</p></div>`;
+  document.getElementById("result").style.display = "block";
+  document.getElementById("submit").disabled = true;
+};
+
+render();
+</script>
+</body>
+</html>

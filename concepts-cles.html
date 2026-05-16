@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8" />
+<title>Concepts clés Figen AI Academy</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body {
+    width: 100%; height: 100%; overflow: hidden;
+    background: #0a1628; color: #f5f7fa;
+    font-family: 'Public Sans', system-ui, -apple-system, sans-serif;
+  }
+  #svg { display: block; width: 100%; height: 100vh; }
+  .label { font-size: 14px; font-weight: 600; fill: #f5f7fa; pointer-events: none; }
+  .label.center { font-size: 18px; font-weight: 700; fill: #ffd34a; }
+  .desc {
+    position: fixed; bottom: 24px; left: 24px; right: 24px;
+    background: rgba(10,22,40,0.85); backdrop-filter: blur(12px);
+    border: 1px solid #1f2d44; border-radius: 8px;
+    padding: 16px 20px; max-width: 720px;
+  }
+  .desc h2 { color: #ffd34a; font-size: 18px; margin-bottom: 4px; }
+  .desc p { color: #94a3b8; font-size: 13px; line-height: 1.5; }
+  .brand { position: fixed; top: 16px; left: 24px; color: #ffd34a; font-weight: 800; font-size: 16px; }
+  .brand small { color: #94a3b8; font-weight: 500; font-size: 12px; margin-left: 6px; }
+</style>
+</head>
+<body>
+<div class="brand">Figen AI Academy <small>· Concepts clés du parcours</small></div>
+<svg id="svg" viewBox="0 0 1200 800" preserveAspectRatio="xMidYMid meet"></svg>
+<div class="desc" id="desc">
+  <h2 id="dtitle">L'IA générative pour CGP</h2>
+  <p id="dbody">Six piliers du parcours en orbite autour du conseil. Le cycle change toutes les 3 secondes — cliquez un pilier pour le détailler.</p>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/d3@7"></script>
+<script>
+const concepts = [
+  { id: "llm",   label: "LLM & Tokens",       title: "Foundation models", body: "Comprendre comment GPT, Claude, Mistral génèrent du texte — tokens, context window, hallucinations, fenêtres glissantes." },
+  { id: "prompt",label: "Prompting",          title: "Prompt engineering", body: "Le framework Role-Goal-Constraints-Output. Templates réutilisables, few-shot, chain-of-thought. Évaluation systématique." },
+  { id: "rag",   label: "RAG",                title: "Retrieval-Augmented Generation", body: "Brancher l'IA sur vos sources internes (KYC, fiches produit, doctrine AMF) pour des réponses sourcées et auditables." },
+  { id: "dda",   label: "Conformité DDA",     title: "DDA / MiFID II", body: "Frontière conseil vs information vs marketing. Documentation obligatoire. Traçabilité des décisions IA-assistées." },
+  { id: "agent", label: "Agents",             title: "AI Agents", body: "Workflows multi-étapes : préparation de RDV, suivi client, synthèse de notes, génération de docs DDA." },
+  { id: "eval",  label: "Evals & Guardrails", title: "Sécurité & qualité", body: "Tests automatiques sur les réponses, golden sets, guardrails contre les sorties non-conformes ou hallucinées." },
+];
+
+const svg = d3.select("#svg");
+const W = 1200, H = 800, cx = W/2, cy = H/2;
+const R = 270;
+
+// Center node
+const centerG = svg.append("g").attr("transform", `translate(${cx},${cy})`);
+centerG.append("circle").attr("r", 80)
+  .attr("fill", "#ffd34a").attr("opacity", 0.15);
+centerG.append("circle").attr("r", 60)
+  .attr("fill", "#ffd34a").attr("opacity", 0.3);
+centerG.append("circle").attr("r", 40)
+  .attr("fill", "#ffd34a");
+centerG.append("text").attr("class", "label center")
+  .attr("text-anchor", "middle").attr("dy", "0.35em")
+  .text("Conseil IA");
+
+// Orbit nodes
+const nodes = concepts.map((c, i) => {
+  const angle = (i / concepts.length) * Math.PI * 2 - Math.PI/2;
+  return { ...c, angle, x: cx + Math.cos(angle) * R, y: cy + Math.sin(angle) * R };
+});
+
+// Connection lines (drawn first so they sit behind)
+const lineG = svg.append("g");
+nodes.forEach(n => {
+  lineG.append("line")
+    .attr("x1", cx).attr("y1", cy).attr("x2", n.x).attr("y2", n.y)
+    .attr("stroke", "#1f2d44").attr("stroke-width", 1)
+    .attr("stroke-dasharray", "4 4");
+});
+
+const nodeG = svg.append("g");
+let active = 0;
+nodes.forEach((n, i) => {
+  const g = nodeG.append("g").attr("transform", `translate(${n.x},${n.y})`).style("cursor", "pointer");
+  g.append("circle").attr("r", 50)
+    .attr("fill", "#0a1628").attr("stroke", "#7aa8ff").attr("stroke-width", 2);
+  g.append("circle").attr("r", 50)
+    .attr("class", "ring-" + i)
+    .attr("fill", "none").attr("stroke", "#ffd34a").attr("stroke-width", 0);
+  g.append("text").attr("class", "label").attr("text-anchor", "middle").attr("dy", "-0.2em")
+    .text(n.label.split(" ")[0]);
+  g.append("text").attr("class", "label").attr("text-anchor", "middle").attr("dy", "1em")
+    .style("font-size", "11px").style("fill", "#94a3b8")
+    .text(n.label.split(" ").slice(1).join(" "));
+
+  g.on("click", () => setActive(i));
+});
+
+function setActive(i) {
+  nodes.forEach((_, j) => {
+    svg.select(".ring-" + j).attr("stroke-width", j === i ? 3 : 0);
+  });
+  d3.select("#dtitle").text(concepts[i].title);
+  d3.select("#dbody").text(concepts[i].body);
+  active = i;
+}
+
+setActive(0);
+// Auto-rotate every 3s
+setInterval(() => setActive((active + 1) % concepts.length), 3000);
+</script>
+</body>
+</html>

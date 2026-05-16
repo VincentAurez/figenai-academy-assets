@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8" />
+<title>Certificat Figen AI Academy</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background: #0a1628; color: #f5f7fa; min-height: 100vh;
+    font-family: 'Public Sans', system-ui, -apple-system, sans-serif;
+    display: flex; align-items: center; justify-content: center;
+    padding: 32px;
+  }
+  .cert {
+    width: 100%; max-width: 1000px;
+    background: linear-gradient(135deg, #0a1628 0%, #122336 100%);
+    border: 3px solid #ffd34a;
+    border-radius: 20px;
+    padding: 60px 64px;
+    position: relative;
+    overflow: hidden;
+  }
+  /* Decorative corner ornaments */
+  .corner {
+    position: absolute; width: 80px; height: 80px;
+    border: 2px solid #ffd34a;
+  }
+  .corner.tl { top: 24px; left: 24px; border-right:0; border-bottom:0; border-radius:8px 0 0 0; }
+  .corner.tr { top: 24px; right: 24px; border-left:0; border-bottom:0; border-radius:0 8px 0 0; }
+  .corner.bl { bottom: 24px; left: 24px; border-right:0; border-top:0; border-radius:0 0 0 8px; }
+  .corner.br { bottom: 24px; right: 24px; border-left:0; border-top:0; border-radius:0 0 8px 0; }
+  .seal {
+    position: absolute; bottom: 50px; right: 60px;
+    width: 110px; height: 110px;
+    background: #ffd34a; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    color: #0a1628; font-weight: 800; font-size: 11px; text-align: center;
+    transform: rotate(-15deg);
+    box-shadow: 0 8px 24px rgba(255,211,74,0.3);
+  }
+  .seal-inner { line-height: 1.2; }
+  .brand-line {
+    color: #ffd34a; font-weight: 800; font-size: 14px; letter-spacing: 0.15em;
+    text-transform: uppercase; margin-bottom: 8px;
+  }
+  .subtitle { color: #94a3b8; font-size: 14px; margin-bottom: 36px; }
+  h1 {
+    font-size: 56px; font-weight: 700; line-height: 1.1; margin-bottom: 28px;
+    letter-spacing: -0.02em;
+  }
+  h1 span { color: #ffd34a; }
+  .body { color: #94a3b8; font-size: 16px; line-height: 1.6; margin-bottom: 28px; max-width: 720px; }
+  .name {
+    font-size: 38px; font-weight: 700; color: #f5f7fa;
+    border-bottom: 2px solid #ffd34a; display: inline-block; padding-bottom: 4px;
+    margin-bottom: 32px;
+  }
+  .signatures {
+    display: flex; gap: 80px; margin-top: 40px;
+  }
+  .sig { text-align: left; }
+  .sig .label { color: #94a3b8; font-size: 12px; margin-bottom: 6px; }
+  .sig .name { font-size: 16px; font-weight: 600; color: #f5f7fa; border: 0; padding: 0; margin: 0; }
+  .sig .role { color: #ffd34a; font-size: 12px; font-weight: 600; margin-top: 2px; }
+  .meta {
+    position: absolute; bottom: 30px; left: 60px;
+    color: #94a3b8; font-size: 11px;
+  }
+  .meta b { color: #ffd34a; }
+</style>
+</head>
+<body>
+<div class="cert">
+  <div class="corner tl"></div>
+  <div class="corner tr"></div>
+  <div class="corner bl"></div>
+  <div class="corner br"></div>
+
+  <div class="brand-line">▌ Figen AI Academy</div>
+  <div class="subtitle">academy.figenai.com · L'IA générative au service du conseil patrimonial</div>
+
+  <h1>Certificat de <span>complétion</span></h1>
+
+  <p class="body">
+    Ce certificat atteste que la personne ci-dessous a complété avec succès le parcours
+    <b style="color:#ffd34a;">Course-as-Code Master</b> — déploiement total d'un cours Figen AI Academy
+    depuis un fichier YAML : brand, contenu, certificat, vidéo, audio, analytics.
+  </p>
+
+  <div class="name" id="learner-name">Vincent Aurez</div>
+
+  <div class="signatures">
+    <div class="sig">
+      <div class="label">Délivré par</div>
+      <div class="name">Figen AI Academy</div>
+      <div class="role">Direction pédagogique</div>
+    </div>
+    <div class="sig">
+      <div class="label">Date</div>
+      <div class="name" id="cert-date">16 mai 2026</div>
+      <div class="role">Cohorte Pilote 2026</div>
+    </div>
+  </div>
+
+  <div class="seal">
+    <div class="seal-inner">FIGEN AI<br>ACADEMY<br>2026</div>
+  </div>
+
+  <div class="meta">N° de certificat : <b id="cert-id">FIGEN-2026-CAC-001</b></div>
+</div>
+
+<script>
+  // Try to inject the learner's name from LearnWorlds context if available
+  try {
+    if (window.LW && window.LW.user && window.LW.user.username) {
+      document.getElementById("learner-name").textContent = window.LW.user.username;
+    } else if (window.parent && window.parent.LW && window.parent.LW.user) {
+      document.getElementById("learner-name").textContent = window.parent.LW.user.username;
+    }
+  } catch (e) {}
+
+  // Today's date in French
+  const d = new Date();
+  const months = ["janvier","février","mars","avril","mai","juin","juillet","août","septembre","octobre","novembre","décembre"];
+  document.getElementById("cert-date").textContent = `${d.getDate()} ${months[d.getMonth()]} ${d.getFullYear()}`;
+</script>
+</body>
+</html>
