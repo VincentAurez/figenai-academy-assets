@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8" />
+<title>Exercice — Évaluer 5 réponses IA · Figen AI Academy</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background: #0a1628; color: #f5f7fa; min-height: 100vh;
+    font-family: 'Public Sans', system-ui, -apple-system, sans-serif;
+    padding: 32px 24px 80px;
+  }
+  .container { max-width: 920px; margin: 0 auto; }
+  .brand { color: #ffd34a; font-weight: 800; font-size: 12px; letter-spacing: 0.18em; margin-bottom: 6px; }
+  h1 { font-size: 32px; line-height: 1.2; margin-bottom: 6px; }
+  .lead { color: #94a3b8; font-size: 15px; margin-bottom: 24px; }
+  .progress {
+    height: 4px; background: #1f2d44; border-radius: 2px; margin-bottom: 30px;
+    overflow: hidden;
+  }
+  .progress .bar {
+    height: 100%; background: #ffd34a; width: 0%; transition: width 0.3s;
+  }
+  .case {
+    background: #122336; border: 1px solid #1f2d44; border-radius: 12px;
+    padding: 22px 24px; margin-bottom: 16px;
+  }
+  .case-num { color: #ffd34a; font-size: 11px; font-weight: 800; letter-spacing: 0.12em; margin-bottom: 6px; }
+  .case h3 { font-size: 17px; font-weight: 700; margin-bottom: 10px; line-height: 1.4; }
+  .prompt-box {
+    background: rgba(122,168,255,0.05); border-left: 3px solid #7aa8ff;
+    padding: 12px 14px; margin: 10px 0; font-size: 13px; color: #d1d9e6; border-radius: 0 6px 6px 0;
+  }
+  .prompt-box b { color: #7aa8ff; }
+  .response-box {
+    background: rgba(255,211,74,0.05); border-left: 3px solid #ffd34a;
+    padding: 12px 14px; margin: 10px 0; font-size: 14px; color: #f5f7fa; border-radius: 0 6px 6px 0;
+    line-height: 1.55;
+  }
+  .response-box b { color: #ffd34a; }
+  .verdicts {
+    display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; margin-top: 16px;
+  }
+  .verdict {
+    padding: 12px 14px; border: 1px solid #2a3349; border-radius: 8px;
+    cursor: pointer; transition: all 0.15s; text-align: center;
+    background: #0a1628;
+  }
+  .verdict:hover { border-color: #ffd34a; }
+  .verdict.selected.good { border-color: #5fe0c5; background: rgba(95,224,197,0.12); }
+  .verdict.selected.warn { border-color: #ffd34a; background: rgba(255,211,74,0.12); }
+  .verdict.selected.bad { border-color: #f57878; background: rgba(245,120,120,0.12); }
+  .verdict-emoji { font-size: 22px; margin-bottom: 4px; }
+  .verdict-label { font-size: 12px; font-weight: 700; }
+  .verdict.good .verdict-label { color: #5fe0c5; }
+  .verdict.warn .verdict-label { color: #ffd34a; }
+  .verdict.bad .verdict-label { color: #f57878; }
+  .explain {
+    margin-top: 12px; padding: 12px 14px; border-radius: 6px;
+    font-size: 13px; line-height: 1.5; display: none;
+  }
+  .explain.show { display: block; }
+  .explain.good { background: rgba(95,224,197,0.08); color: #b6f0e0; border: 1px solid #5fe0c5; }
+  .explain.warn { background: rgba(255,211,74,0.08); color: #f5dfa0; border: 1px solid #ffd34a; }
+  .explain.bad { background: rgba(245,120,120,0.08); color: #f5b8b8; border: 1px solid #f57878; }
+  .explain b { font-weight: 700; }
+  button#submit {
+    background: #ffd34a; color: #0a1628; border: 0; border-radius: 8px;
+    padding: 14px 28px; font-weight: 700; font-size: 15px; cursor: pointer;
+    font-family: inherit; transition: transform 0.15s;
+  }
+  button#submit:hover:not(:disabled) { transform: translateY(-1px); }
+  button#submit:disabled { background: #2a3349; color: #94a3b8; cursor: not-allowed; transform: none; }
+  .result {
+    background: linear-gradient(135deg, #122336 0%, #0a1628 100%);
+    border: 2px solid #ffd34a; border-radius: 12px; padding: 30px;
+    text-align: center; margin-top: 22px;
+  }
+  .result h2 { font-size: 28px; color: #ffd34a; margin-bottom: 8px; }
+  .result .score { font-size: 52px; font-weight: 800; color: #ffd34a; margin: 14px 0; }
+  .result p { color: #94a3b8; font-size: 14px; line-height: 1.5; }
+  .footer-brand {
+    margin-top: 32px; text-align: center; color: #94a3b8; font-size: 11px;
+  }
+  .footer-brand b { color: #ffd34a; }
+</style>
+</head>
+<body>
+<div class="container">
+  <div class="brand">▌ FIGEN AI ACADEMY · MODULE 6</div>
+  <h1>Exercice — Évaluez 5 réponses IA</h1>
+  <p class="lead">Pour chaque cas, lisez le prompt + la réponse, puis jugez : <b style="color:#5fe0c5">utilisable</b>, <b style="color:#ffd34a">à corriger</b>, ou <b style="color:#f57878">à rejeter</b>.</p>
+  <div class="progress"><div class="bar" id="bar"></div></div>
+
+  <div id="cases"></div>
+  <button id="submit" disabled>Voir mon score</button>
+  <div id="result"></div>
+  <div class="footer-brand"><b>Figen AI Academy</b> · academy.figenai.com</div>
+</div>
+
+<script>
+const cases = [
+  {
+    n: 1, title: "Synthèse de RDV client",
+    prompt: "Résume les notes de ce RDV en 5 points clés pour ma fiche DDA.",
+    response: "1. Client : Mme X, 52 ans, profession libérale\n2. Objectif : préparer la retraite à 65 ans\n3. Tolérance au risque : modérée (4/10)\n4. Patrimoine actuel : 350k€ dont 80% immobilier\n5. Recommandation : diversification via PEA + assurance-vie",
+    correct: "good",
+    explain: {
+      good: "✓ Structurée, factuelle, neutralisée. Identifie clairement le profil et reste descriptive — pas de conseil signé. À valider et signer par le CGP.",
+      warn: "Cette réponse est correcte. Vous pouvez la signer après relecture.",
+      bad: "Cette réponse est correcte — elle aurait dû être validée."
+    }
+  },
+  {
+    n: 2, title: "Argumentaire produit",
+    prompt: "Rédige un argumentaire pour vendre le PEA-PME à M. Y.",
+    response: "Le PEA-PME est un excellent placement qui vous fera doubler votre capital en 5 ans sans risque. Profitez de cette opportunité unique avant la fin du trimestre, les places sont limitées.",
+    correct: "bad",
+    explain: {
+      good: "Cette réponse est dangereuse. « Doubler en 5 ans sans risque » est faux et illégal en marketing financier (DDA + AMF). « Places limitées » crée de l'urgence trompeuse.",
+      warn: "Plus qu'à corriger : à REJETER intégralement. Le texte contient au moins 3 violations AMF.",
+      bad: "✓ À rejeter sans détour. « Sans risque » + « places limitées » = violations DDA/AMF. Reformulez avec mentions légales obligatoires."
+    }
+  },
+  {
+    n: 3, title: "Question juridique précise",
+    prompt: "Mon client vient d'hériter. Doit-il payer des droits de succession sur l'assurance-vie ?",
+    response: "Sur une assurance-vie souscrite avant 70 ans : abattement de 152 500 € par bénéficiaire (art. 990 I CGI). Au-dessus : 20% jusqu'à 700k€, 31,25% au-delà. Sources : Code général des impôts art. 990 I + doctrine BOFiP en vigueur 2025.",
+    correct: "good",
+    explain: {
+      good: "✓ Réponse factuelle, sourcée (article CGI + BOFiP), précise sur le seuil et les taux. Le CGP peut s'appuyer dessus tout en validant l'info à jour.",
+      warn: "La réponse semble correcte et sourcée. Pas besoin de la corriger fondamentalement.",
+      bad: "Cette réponse cite les bonnes sources. À ne PAS rejeter."
+    }
+  },
+  {
+    n: 4, title: "Recommandation d'arbitrage",
+    prompt: "Faut-il arbitrer 50k€ du fonds €uros vers les UC ?",
+    response: "Oui, vous devriez arbitrer 50k€ vers les UC. Les fonds €uros ne rapportent plus rien et les UC offrent un meilleur rendement.",
+    correct: "warn",
+    explain: {
+      good: "Cette réponse pose un problème : pas de référence au profil du client, pas de mention du risque UC, ton trop directif.",
+      warn: "✓ À corriger. Le fond peut être valide mais : (1) il manque le profil de risque client, (2) « ne rapportent plus rien » est inexact (2,5-3,5% en 2025), (3) les UC ont un risque en capital à mentionner.",
+      bad: "Le fond peut servir de point de départ. À CORRIGER plutôt qu'à rejeter."
+    }
+  },
+  {
+    n: 5, title: "Veille macro pour briefing client",
+    prompt: "Donne-moi les 3 chiffres clés à connaître sur l'inflation française en octobre 2025.",
+    response: "L'inflation en France était de 1,4% en octobre 2024, soit le niveau le plus bas depuis 2021. Le taux de chômage stable à 7,3%, et le PIB à +1,1% sur 12 mois. Source : INSEE.",
+    correct: "warn",
+    explain: {
+      good: "La réponse cite l'INSEE mais le prompt demandait OCTOBRE 2025 — la réponse donne 2024. À corriger (date).",
+      warn: "✓ À corriger. L'IA a confondu octobre 2024 et octobre 2025 (date du prompt). Demandez la version 2025 ou vérifiez sur insee.fr.",
+      bad: "Les chiffres pourraient être justes — c'est la date qui pose problème, pas le contenu. À corriger, pas à rejeter."
+    }
+  }
+];
+
+const answers = {};
+
+function render() {
+  const div = document.getElementById('cases');
+  div.innerHTML = '';
+  cases.forEach((c, i) => {
+    const card = document.createElement('div');
+    card.className = 'case';
+    card.innerHTML = `
+      <div class="case-num">CAS ${c.n} / ${cases.length}</div>
+      <h3>${c.title}</h3>
+      <div class="prompt-box"><b>Prompt :</b> ${c.prompt}</div>
+      <div class="response-box"><b>Réponse IA :</b><br>${c.response.replace(/\n/g, '<br>')}</div>
+      <div class="verdicts" data-idx="${i}">
+        <div class="verdict good" data-v="good">
+          <div class="verdict-emoji">✓</div>
+          <div class="verdict-label">UTILISABLE</div>
+        </div>
+        <div class="verdict warn" data-v="warn">
+          <div class="verdict-emoji">⚠</div>
+          <div class="verdict-label">À CORRIGER</div>
+        </div>
+        <div class="verdict bad" data-v="bad">
+          <div class="verdict-emoji">✗</div>
+          <div class="verdict-label">À REJETER</div>
+        </div>
+      </div>
+      <div class="explain" data-idx="${i}"></div>
+    `;
+    div.appendChild(card);
+  });
+  // Wire clicks
+  document.querySelectorAll('.verdicts').forEach(g => {
+    g.addEventListener('click', e => {
+      const v = e.target.closest('.verdict');
+      if (!v) return;
+      const idx = +g.dataset.idx;
+      const val = v.dataset.v;
+      g.querySelectorAll('.verdict').forEach(x => x.classList.remove('selected'));
+      v.classList.add('selected');
+      answers[idx] = val;
+      updateBar();
+    });
+  });
+}
+
+function updateBar() {
+  const n = Object.keys(answers).length;
+  document.getElementById('bar').style.width = `${n / cases.length * 100}%`;
+  document.getElementById('submit').disabled = n < cases.length;
+}
+
+document.getElementById('submit').onclick = () => {
+  let score = 0;
+  cases.forEach((c, i) => {
+    const ans = answers[i];
+    if (ans === c.correct) score++;
+    // Reveal explanation
+    const exp = document.querySelector(`.explain[data-idx="${i}"]`);
+    exp.className = `explain show ${ans}`;
+    exp.innerHTML = c.explain[ans];
+    // Lock interactions
+    document.querySelector(`.verdicts[data-idx="${i}"]`).style.pointerEvents = 'none';
+  });
+  const verdict = score === 5 ? "Excellent — vous êtes prêt à valider les réponses IA en production." :
+                  score >= 3 ? "Bon réflexe. Approfondissez le module 6 avant de mettre en autonomie." :
+                  "Important : revoyez les principes d'évaluation avant tout usage client.";
+  document.getElementById('result').innerHTML = `
+    <div class="result">
+      <h2>Résultat de l'exercice</h2>
+      <div class="score">${score} / 5</div>
+      <p>${verdict}</p>
+    </div>
+  `;
+  document.getElementById('submit').disabled = true;
+  document.getElementById('submit').textContent = '✓ Soumis';
+};
+
+render();
+</script>
+</body>
+</html>
